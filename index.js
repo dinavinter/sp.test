@@ -132,6 +132,20 @@ function acs(spName, apiKey, err, saml_response) {
 }
 
 
+function slo(saml_response, sp, idp, options, res, err) {
+    if (saml_response && saml_response.type == 'logout_request') {
+        sp.create_logout_response_url(idp, options, function (url_err, logout_url) {
+            if (url_err != null)
+                return res.send(url_err);
+            res.redirect(logout_url);
+        });
+    } else {
+        if (err != null)
+            return res.send(err);
+        res.json(saml_response);
+    }
+}
+
 app.post("/:spName/:apiKey/slo", function (req, res) {
    
     var idp = getIdp(req.params.apiKey);
@@ -143,11 +157,8 @@ app.post("/:spName/:apiKey/slo", function (req, res) {
         allow_unencrypted_assertion: true}; 
 
      sp.post_assert(idp, options, function (err, saml_response) {
-         sp.create_logout_response_url(idp, options, function (err, logout_url) {
-             if (err != null)
-                 return res.send(err);
-             res.redirect(logout_url);
-         });
+         return slo(saml_response, sp, idp, options, res, err);
+        
  
     });
  
@@ -166,13 +177,8 @@ app.get("/:spName/:apiKey/slo", function (req, res) {
         allow_unencrypted_assertion: true};
 
     sp.redirect_assert(idp, options, function (err, saml_response) {
-
-        sp.create_logout_response_url(idp, options, function (err, logout_url) {
-            if (err != null)
-                return res.send(err);
-            res.redirect(logout_url);
-        });
-      
+        return slo(saml_response, sp, idp, options, res, err);
+ 
     });
  
 
