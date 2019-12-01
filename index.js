@@ -34,7 +34,12 @@ function getIdp(apiKey) {
     };
     return new saml2.IdentityProvider(idp_options);
 
-} 
+}
+
+// Endpoint to retrieve metadata
+app.get("/", function (req, res) {
+     res.send("hi");
+});
 
 // Endpoint to retrieve metadata
 app.get("/:spName/metadata.xml", function (req, res) {

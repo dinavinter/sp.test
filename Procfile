@@ -1,1 +1,1 @@
-web: node SP.js
+web: node index.js
