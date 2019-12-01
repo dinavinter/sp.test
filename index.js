@@ -66,7 +66,7 @@ app.get("/:spName/:apiKey/logout", function (req, res) {
 
     var idp = getIdp(req.params.apiKey);
     var sp = getSp(req.params.spName);
-    var session=sessions[`${apiKey}_${req.params.spName}`];
+    var session=sessions[`${req.params.apiKey}_${req.params.spName}`];
     if(!session)
         return res.send(`User is not loggedin!  loggedin sps: ${Object.keys(sessions)} `);
 
