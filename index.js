@@ -42,9 +42,10 @@ app.get("/", function (req, res) {
 });
 
 // Endpoint to retrieve metadata
-app.get("/:spName/metadata.xml", function (req, res) {
-    res.type('application/xml');
-    var sp= getSP(req.params.spName);
+app.get("/:spName/:apiKey/metadata.xml", function (req, res) {
+    res.type('application/xml'); 
+    var sp= getSp(req.params.spName);
+    sp.assert_endpoint = `https://sp-gigya-test.herokuapp.com/${req.params.spName}/${req.params.apiKey}/acs`
     res.send(sp.create_metadata());
 });
  
