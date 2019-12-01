@@ -4,7 +4,8 @@
   "dependencies": {
     "express": "4.17.1",
     "fs": "0.0.1-security",
-    "body-parser": "latest"
+    "body-parser": "latest",
+    "saml2-js": "2.0.5"
   },
   "devDependencies": {
     "saml2-js": "2.0.5"
