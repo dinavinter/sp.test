@@ -178,5 +178,8 @@ app.get("/:spName/:apiKey/slo", function (req, res) {
 
 });
 
-
-app.listen(7000); 
+const PORT = process.env.PORT || 7000;
+app.listen(PORT, () => {
+    console.log(`Our app is running on port ${ PORT }`);
+});
+ 
