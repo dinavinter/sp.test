@@ -22,14 +22,15 @@ function getSp(spName) {
 }
 
 function getEntityId(spName) {return `https://${spName}.com/metadata.xml`; }
+function getUrl(domain, apiKey ,spName) {return `https://sp-gigya-test.herokuapp.com/${spName}/${domain}/${apiKey}`; }
 
 var sessions= {};
 
-function getIdp(apiKey) {
+function getIdp(domain, apiKey) {
   
     var idp_options = {
-        sso_login_url: `https://fidm.us1.gigya.com/saml/v2.0/${apiKey}/idp/sso`,
-        sso_logout_url: `https://fidm.us1.gigya.com/saml/v2.0/${apiKey}/idp/slo`
+        sso_login_url: `https://fidm.${domain}.gigya.com/saml/v2.0/${apiKey}/idp/sso`,
+        sso_logout_url: `https://fidm.${domain}.gigya.com/saml/v2.0/${apiKey}/idp/slo`
         //certificates: [fs.readFileSync("cert-file.crt").toString()]
     };
     return new saml2.IdentityProvider(idp_options);
@@ -42,17 +43,46 @@ app.get("/", function (req, res) {
 });
 
 // Endpoint to retrieve metadata
-app.get("/:spName/:apiKey/metadata.xml", function (req, res) {
+app.get("/:spName/:domain/:apiKey/metadata.xml", function (req, res) {
     res.type('application/xml'); 
     var sp= getSp(req.params.spName);
-    sp.assert_endpoint = `https://sp-gigya-test.herokuapp.com/${req.params.spName}/${req.params.apiKey}/acs`
+    sp.assert_endpoint = `${getUrl(req.params.domain, req.params.apiKey,req.params.spName)}/acs`,
     res.send(sp.create_metadata());
+});
+
+// Starting point for login
+app.get("/:spName/:domain/:apiKey/config", function (req, res) {
+
+    var idp = getIdp(req.params.domain, req.params.apiKey);
+    var sp = getSp(req.params.spName);
+
+    res.json({
+        "name": req.params.spName,
+        "entityID": getEntityId(req.params.spName),
+        "assertionConsumerServiceURL": `${getUrl(req.params.domain, req.params.apiKey,req.params.spName)}/acs`,
+        "singleLogoutServiceURL": `${getUrl(req.params.domain, req.params.apiKey,req.params.spName)}/slo`,
+        "singleLogoutServiceBinding": "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST",
+        "authnRequestSigned": false,
+        "wantAssertionSigned": false,
+        "encryptAssertions": false,
+        "nameIDMapping": {
+
+        },
+        "sessionLifetime": 1440,
+        "attributeMapping": [
+            {
+                "attributeName": "My-name",
+                "gigyaField": "profile.firstName",
+                "attributeType": "urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified"
+            }
+        ]
+    });
 });
  
 // Starting point for login
-app.get("/:spName/:apiKey/login", function (req, res) {
+app.get("/:spName/:domain/:apiKey/login", function (req, res) {
  
-    var idp = getIdp(req.params.apiKey);
+    var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
  
     sp.create_login_request_url(idp, {}, function (err, login_url, request_id) {
@@ -63,9 +93,9 @@ app.get("/:spName/:apiKey/login", function (req, res) {
 });
 
 // Starting point for logout
-app.get("/:spName/:apiKey/logout", function (req, res) {
+app.get("/:spName/:domain/:apiKey/logout", function (req, res) {
 
-    var idp = getIdp(req.params.apiKey);
+    var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
     var session=sessions[`${req.params.apiKey}_${req.params.spName}`];
     if(!session)
@@ -85,8 +115,8 @@ app.get("/:spName/:apiKey/logout", function (req, res) {
 
 
 // Assert endpoint for when login completes
-app.post("/:spName/:apiKey/acs", function (req, res) {
-    var idp = getIdp(req.params.apiKey);
+app.post("/:spName/:domain/:apiKey/acs", function (req, res) {
+    var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
 
     var options = {request_body: req.body,
@@ -102,8 +132,8 @@ app.post("/:spName/:apiKey/acs", function (req, res) {
 });
 
 
-app.get("/:spName/:apiKey/acs", function (req, res) {
-    var idp = getIdp(req.params.apiKey);
+app.get("/:spName/:domain/:apiKey/acs", function (req, res) {
+    var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
 
     var options = {request_body: req.query,
@@ -147,9 +177,9 @@ function slo(saml_response, sp, idp, options, res, err) {
     }
 }
 
-app.post("/:spName/:apiKey/slo", function (req, res) {
+app.post("/:spName/:domain/:apiKey/slo", function (req, res) {
    
-    var idp = getIdp(req.params.apiKey);
+    var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
 
     var options = {request_body: req.body,
@@ -167,9 +197,9 @@ app.post("/:spName/:apiKey/slo", function (req, res) {
 });
 
 
-app.get("/:spName/:apiKey/slo", function (req, res) {
+app.get("/:spName/:domain/:apiKey/slo", function (req, res) {
 
-    var idp = getIdp(req.params.apiKey);
+    var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
 
     var options = {request_body: req.query,
