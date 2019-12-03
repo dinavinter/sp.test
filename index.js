@@ -152,7 +152,7 @@ function acs(spName, apiKey, err, saml_response) {
     // Save name_id and session_index for logout
     // Note:  In practice these should be saved in the user session, not globally.
 
-    if(saml_response.user)
+    if(saml_response && saml_response.user)
     {
         sessions[`${apiKey}_${spName}`] = {
             name_id: saml_response.user.name_id,
