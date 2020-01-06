@@ -194,7 +194,7 @@ app.post("/:spName/:domain/:apiKey/slo", function (req, res) {
 
     var options = {request_body: req.body,
         audience:  getEntityId(req.params.spName),
-        ignore_signature: true,
+        ignore_signature: false,
         allow_unencrypted_assertion: true}; 
 
      sp.post_assert(idp, options, function (err, saml_response) {
@@ -214,7 +214,7 @@ app.get("/:spName/:domain/:apiKey/slo", function (req, res) {
 
     var options = {request_body: req.query,
         audience:  getEntityId(req.params.spName),
-        ignore_signature: true,
+        ignore_signature: false,
         allow_unencrypted_assertion: true};
 
     sp.redirect_assert(idp, options, function (err, saml_response) {
