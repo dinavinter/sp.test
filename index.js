@@ -3,25 +3,20 @@ var fs = require('fs');
 var express = require('express');
 var app = express();
 var bodyParser = require('body-parser');
-var routeMetadata = require('./routers/metadataRouter').routeMetadata;
-var routeSlo = require('./routers/sloRouter').routeSlo;
-var routeSso = require('./routers/ssoRouter').routeSso;
-var routeSpInitCommands = require('./routers/commandsRouter').routeSpInitCommands;
+var sessions = {};
+
+//routes
+require('./routers/metadataRouter').routeMetadata(app);
+require('./routers/sloRouter').routeSlo(app, sessions);
+require('./routers/ssoRouter').routeSso(app, sessions);
+require('./routers/commandsRouter').routeSpInitCommands(app, sessions);
+
 
 app.use(bodyParser.urlencoded({
     extended: true
 }));
 
-var sessions = {};
-
-app.get("/", function (req, res) {
-    res.send("hi");
-});
-
-routeMetadata(app);
-routeSso(app, sessions);
-routeSlo(app, sessions);
-routeSpInitCommands(app, sessions);
+  
 
 
 //https
@@ -37,6 +32,8 @@ const PORT = process.env.PORT || 7001;
 httpsServer.listen(PORT, () => {
     console.log(`Our app is running on port ${ PORT }`);
 });
+
+
 
 //http
 // const PORT = process.env.PORT || 7000;
