@@ -1,15 +1,9 @@
 var saml2 = require('saml2-js'); 
-var fs = require('fs');
-var http = require('http');
-var https = require('https');
-var privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
-var certificate = fs.readFileSync('./sslcert/server.crt', 'utf8'); 
-var credentials = {key: privateKey, cert: certificate};
+var fs = require('fs'); 
 var express = require('express'); 
 var app = express(); 
 var bodyParser = require('body-parser');
-var httpServer = http.createServer(app);
-var httpsServer = https.createServer(credentials, app);
+var logger =require("./spLogs.js");
 
 
 app.use(bodyParser.urlencoded({
@@ -126,13 +120,14 @@ app.get("/:spName/:domain/:apiKey/logout", function (req, res) {
 app.post("/:spName/:domain/:apiKey/acs", function (req, res) {
     var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
-    console.log(getEntityId(req.params.spName),);
+   
     var options = {request_body: req.body,
         audience:  getEntityId(req.params.spName),
         ignore_signature: true,
         allow_unencrypted_assertion: true};
 
     sp.post_assert(idp, options, function (err, saml_response) {
+        logger.log(saml_response,"post");
         acs(req.params.spName, req.params.apiKey, err, saml_response);
         res.json({ saml_response:saml_response, err:err});
     });
@@ -149,7 +144,8 @@ app.get("/:spName/:domain/:apiKey/acs", function (req, res) {
         ignore_signature: true,
         allow_unencrypted_assertion: true};
 
-      sp.redirect_assert(idp, options, function (err, saml_response) { 
+      sp.redirect_assert(idp, options, function (err, saml_response) {
+          logger.log(saml_response,"get");
           acs(req.params.spName, req.params.apiKey, err, saml_response);  
           res.json({ saml_response:saml_response, err:err});
     });
@@ -173,7 +169,7 @@ function acs(spName, apiKey, err, saml_response) {
 
 function slo(saml_response, sp, idp, o, res, err) {
     if (saml_response && saml_response.type == 'logout_request') {
-        console.log(saml_response);
+        
         var options= {  in_response_to: saml_response.response_header.id};
         sp.create_logout_response_url(idp, options, function (url_err, logout_url) {
             if (url_err != null)
@@ -198,6 +194,7 @@ app.post("/:spName/:domain/:apiKey/slo", function (req, res) {
         allow_unencrypted_assertion: true}; 
 
      sp.post_assert(idp, options, function (err, saml_response) {
+         logger.log(saml_response,"post");
          return slo(saml_response, sp, idp, options, res, err);
         
  
@@ -218,6 +215,7 @@ app.get("/:spName/:domain/:apiKey/slo", function (req, res) {
         allow_unencrypted_assertion: true};
 
     sp.redirect_assert(idp, options, function (err, saml_response) {
+        logger.log(saml_response,"get");
         return slo(saml_response, sp, idp, options, res, err);
  
     });
@@ -225,11 +223,21 @@ app.get("/:spName/:domain/:apiKey/slo", function (req, res) {
 
 });
 
+//https
+// var http = require('http');
+// var https = require('https');
+// var privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
+// var certificate = fs.readFileSync('./sslcert/server.crt', 'utf8');
+// var credentials = {key: privateKey, cert: certificate};
+// var httpServer = http.createServer(app);
+// var httpsServer = https.createServer(credentials, app);
+//
 // const PORT = process.env.PORT || 7001;
 // httpsServer.listen(PORT, () => {
 //     console.log(`Our app is running on port ${ PORT }`);
 // });
 
+//http
 const PORT = process.env.PORT || 7000;
 app.listen(PORT, () => {
     console.log(`Our app is running on port ${ PORT }`);
