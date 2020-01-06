@@ -1,29 +1,37 @@
 {
-  "name": "Saml-SP",
-  "version": "1.0.0",
+  "name": "sp.magic",
+  "version": "0.0.0",
+  "private": true,
+  "scripts": {
+    "start": "npm run prod",
+    "server": "babel-node ./src/bin/www.https",
+    "server:prod": "node ./dist/bin/www",
+    "dev": "npm-run-all server",
+    "clean": "rimraf dist",
+    "build": "babel ./src --out-dir dist",
+    "prod": "NODE_ENV=production npm-run-all clean build server:prod",
+    "watch": "nodemon",
+    "copy": "cpx \"src/resources/**\" bin -w & watchify src/index.js -o app/index.js"
+  },
   "dependencies": {
-    "express": "4.17.1",
-    "fs": "0.0.1-security",
+    "cookie-parser": "~1.4.4",
+    "cors": "2.8.5",
+    "debug": "~2.6.9",
+    "express": "~4.16.1",
+    "http-errors": "~1.6.3",
+    "morgan": "~1.9.1",
+    "npm-run-all": "4.1.5",
+    "pug": "2.0.0-beta11",
+    "rimraf": "3.0.0",
     "body-parser": "latest",
     "saml2-js": "2.0.5"
   },
   "devDependencies": {
+    "@babel/cli": "7.7.7",
+    "@babel/core": "7.7.7",
+    "@babel/node": "7.7.7",
+    "@babel/preset-env": "7.7.7",
+    "nodemon": "2.0.2",
     "saml2-js": "2.0.5"
-  },
-  "main": "SP.js",
-  "scripts": {
-    "start": "node index.js"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/dinavinter/sp.test.git"
-  },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/dinavinter/sp.test/issues"
-  },
-  "homepage": "https://github.com/dinavinter/sp.test#readme",
-  "description": ""
+  }
 }
