@@ -1,8 +1,16 @@
-var saml2 = require('saml2-js');
+var saml2 = require('saml2-js'); 
 var fs = require('fs');
+var http = require('http');
+var https = require('https');
+var privateKey  = fs.readFileSync('./sslcert/server.key', 'utf8');
+var certificate = fs.readFileSync('./sslcert/server.crt', 'utf8'); 
+var credentials = {key: privateKey, cert: certificate};
 var express = require('express'); 
 var app = express(); 
 var bodyParser = require('body-parser');
+var httpServer = http.createServer(app);
+var httpsServer = https.createServer(credentials, app);
+
 
 app.use(bodyParser.urlencoded({
     extended: true
@@ -118,7 +126,7 @@ app.get("/:spName/:domain/:apiKey/logout", function (req, res) {
 app.post("/:spName/:domain/:apiKey/acs", function (req, res) {
     var idp = getIdp(req.params.domain, req.params.apiKey);
     var sp = getSp(req.params.spName);
-
+    console.log(getEntityId(req.params.spName),);
     var options = {request_body: req.body,
         audience:  getEntityId(req.params.spName),
         ignore_signature: true,
@@ -163,8 +171,10 @@ function acs(spName, apiKey, err, saml_response) {
 }
 
 
-function slo(saml_response, sp, idp, options, res, err) {
+function slo(saml_response, sp, idp, o, res, err) {
     if (saml_response && saml_response.type == 'logout_request') {
+        console.log(saml_response);
+        var options= {  in_response_to: saml_response.response_header.id};
         sp.create_logout_response_url(idp, options, function (url_err, logout_url) {
             if (url_err != null)
                 return res.send(url_err);
@@ -215,8 +225,12 @@ app.get("/:spName/:domain/:apiKey/slo", function (req, res) {
 
 });
 
+// const PORT = process.env.PORT || 7001;
+// httpsServer.listen(PORT, () => {
+//     console.log(`Our app is running on port ${ PORT }`);
+// });
+
 const PORT = process.env.PORT || 7000;
-app.listen(PORT, () => {
+httpServer.listen(PORT, () => {
     console.log(`Our app is running on port ${ PORT }`);
 });
- 
