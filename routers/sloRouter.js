@@ -1,24 +1,22 @@
 const config = require("../services/config");
 const logger = require("../services/spLogs"); 
 
-exports.routeSlo= (app ,sessions) => {
+exports.routeSlo= (app ) => {
  
     app.post("/:spName/:domain/:apiKey/slo", function (req, res) {
 
-        var idp = config.getIdp(req.params.domain, req.params.apiKey);
         var sp = config.getSp(req.params.spName);
-
+        var idp = config.getIdp(req.params.domain, req.params.apiKey);
+        var fromBase64 = Buffer.from(req.body,'base64').toString('utf-8');
         var options = {
-            request_body: req.body,
+            request_body: fromBase64,
             audience: config.getEntityId(req.params.spName),
             ignore_signature: false,
             allow_unencrypted_assertion: true
         };
-
         sp.post_assert(idp, options, function (err, saml_response) {
             logger.log(saml_response, "post");
             return slo(saml_response, sp, idp, options, res, err);
-
 
         });
 
@@ -27,13 +25,12 @@ exports.routeSlo= (app ,sessions) => {
 
 
     app.get("/:spName/:domain/:apiKey/slo", function (req, res) {
-
-        var idp = getIdp(req.params.domain, req.params.apiKey);
-        var sp = getSp(req.params.spName);
+        var idp = config.getIdp(req.params.domain, req.params.apiKey);
+        var sp = config.getSp(req.params.spName);
 
         var options = {
             request_body: req.query,
-            audience: getEntityId(req.params.spName),
+            audience: config.getEntityId(req.params.spName),
             ignore_signature: false,
             allow_unencrypted_assertion: true
         };
