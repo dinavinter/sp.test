@@ -32,12 +32,12 @@ router.post("/:spName/:domain/:apiKey/slo", function (req, res) {
 
 router.get("/:spName/:domain/:apiKey/slo", function (req, res) {
 
-    var idp = getIdp(req.params.domain, req.params.apiKey);
-    var sp = getSp(req.params.spName);
+    var idp = config.getIdp(req.params.domain, req.params.apiKey);
+    var sp = config.getSp(req.params.spName);
 
     var options = {
         request_body: req.query,
-        audience: getEntityId(req.params.spName),
+        audience: config.getEntityId(req.params.spName),
         ignore_signature: false,
         allow_unencrypted_assertion: true
     };
