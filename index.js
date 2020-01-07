@@ -105,7 +105,9 @@ app.get("/:spName/:domain/:apiKey/logout", function (req, res) {
 
     var options = {
         name_id:  session.name_id,
-        session_index: session.session_index
+        session_index: session.session_index,
+        sign_get_request: true
+        
     };
 
     sp.create_logout_request_url(idp, options, function (err, logout_url) {
