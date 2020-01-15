@@ -10,7 +10,7 @@ router.get("/:spName/:domain/:apiKey/login", function (req, res) {
     var idp = config.getIdp(req.params.domain, req.params.apiKey);
     var sp = config.getSp(req.params.spName);
 
-    sp.create_login_request_url(idp, {}, function (err, login_url, request_id) {
+    sp.create_login_request_url(idp, { sign_get_request: true}, function (err, login_url, request_id) {
         if (err != null)
             return res.send(500);
         res.redirect(login_url);
@@ -29,7 +29,8 @@ router.get("/:spName/:domain/:apiKey/logout", function (req, res) {
 
     var options = {
         name_id: session.name_id,
-        session_index: session.session_index
+        session_index: session.session_index,
+        sign_get_request: true
     };
 
     sp.create_logout_request_url(idp, options, function (err, logout_url) {

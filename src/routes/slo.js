@@ -55,7 +55,7 @@ router.get("/:spName/:domain/:apiKey/slo", function (req, res) {
 function slo(saml_response, sp, idp, o, res, err) {
     if (saml_response && saml_response.type == 'logout_request') {
 
-        var options = {in_response_to: saml_response.response_header.id};
+        var options = {in_response_to: saml_response.response_header.id,  sign_get_request: true};
         sp.create_logout_response_url(idp, options, function (url_err, logout_url) {
             if (url_err != null)
                 return res.send(url_err);
