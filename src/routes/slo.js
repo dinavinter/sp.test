@@ -11,10 +11,9 @@ router.post("/:spName/:domain/:apiKey/slo", function (req, res) {
 
     var idp = config.getIdp(req.params.domain, req.params.apiKey);
     var sp = config.getSp(req.params.spName);
-    var fromBase64 = Buffer.from(req.body,'base64').toString('utf-8');
-
+ 
     var options = {
-        request_body: fromBase64,
+        request_body: req.body,
         audience: config.getEntityId(req.params.spName),
         ignore_signature: false,
         allow_unencrypted_assertion: true
